@@ -1,0 +1,48 @@
+version: '3.3'
+
+services:
+  eureka:
+    image: openjdk:8u212-jre-alpine3.9
+    container_name: eureka
+    restart: always
+    command: java -Xmx128m -Xms128m -Xmn64m -Xss1m -jar -XX:MaxMetaspaceSize=64M -XX:MetaspaceSize=64M -XX:+UseSerialGC -jar /app/service.jar
+    environment:
+      - TZ=Asia/Shanghai
+      - info.app.name=eureka
+      - info.app.version=v2.6.2
+      - info.app.time=2020-0819
+      - info.describe=eureka-center
+      - spring.application.name=eureka
+      - server.port=8761
+      - security.basic.enabled=false
+      - spring.security.user.name=user
+      - spring.security.user.password=register
+      - eureka.instance.prefer-ip-address=true
+      - eureka.instance.ip-address=192.168.2.230
+      - eureka.instance.instance-id=192.168.2.230:8761
+      - eureka.client.register-with-eureka=false
+      - eureka.client.fetch-registry=true
+      - eureka.client.service-url.defaultZone=http://user:register@192.168.2.230:8761/eureka/
+      - eureka.server.enable-self-preservation=false
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./apps/eureka-1.0.0.jar:/app/service.jar
+    ports:
+      - 8761:8761
+
+  gateway:
+    image: openjdk:8u212-jre-alpine3.9
+    container_name: mysql-cluster-node02
+    restart: always 
+    environment:
+      - TZ=Asia/Shanghai
+      - CLUSTER_NAME=mysql-cluster
+      - MYSQL_ROOT_PASSWORD=password
+      - CLUSTER_JOIN=mysql-cluster-node01
+      - CMDARG=--character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci --default-time-zone=+8:00 --log-timestamps=SYSTEM --general_log=on --general_log_file=mysql-sql.log
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./apps/gateway-1.0.0.jar:/app/service.jar
+    ports:
+      - 8080:8080
+

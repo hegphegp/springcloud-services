@@ -1,0 +1,28 @@
+info:
+  describe: eureka-center
+  app:
+    name: eureka
+    version: 1.0.0
+    time: 2020-08-19
+
+server:
+  port: 8761
+
+spring:
+  security:
+    user:
+      name: user
+      password: register
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    ip-address: 192.168.0.105
+    instance-id: 192.168.0.105:8761
+  client:
+    register-with-eureka: false
+    fetch-registry: true
+    service-url:
+      defaultZone: http://user:register@192.168.0.105:8761/eureka/
+  server:
+    enable-self-preservation: false
