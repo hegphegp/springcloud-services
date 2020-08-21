@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+    <title>webIM</title>
+    <link rel="stylesheet" href="static/js/layui/css/layui.css" media="all">
+</head>
+<body style="background: #e2e2e2">
+<noscript>
+    <h2>很抱歉,您的浏览器不支持JavaScript</h2>
+</noscript>
+<script src="static/js/layui/layui.js"></script>
+<script src="https://cdn.bootcss.com/sockjs-client/1.1.4/sockjs.min.js"></script>
+<script src="https://cdn.bootcss.com/stomp.js/2.3.3/stomp.min.js"></script>
+<script th:inline="javascript">
+    var init = [# th:utext="${mine}"/];
+
+    layui.use(['layim','jquery'], function(layim) {
+        var basePath = "";
+        var $ = layui.jquery;
+        var stompClient;
+        $.get("getBasePath", {}, function (res) {
+            if (0 == res.code) {
+                basePath = res.data;
+                layim.config({
+                    init: init,
+                    members: {
+                        url: '',
+                        type: 'get',
+                        data: {}
+                    },
+                    uploadImage: {
+                        url: '',
+                        type: 'post'
+                    },
+                    uploadFile: {
+                        url: '',
+                        type: 'post'
+                    }
+                });
+
+                layim.on('sendMessage', function(res){
+                    var to = res.to;
+                    if ("friend" === to.type) {
+                        stompClient.send("/app/chat.private", {}, JSON.stringify({
+                            type: 'chatMessage',
+                            data: res
+                        }));
+                    } else if ("group" === to.type) {
+                        stompClient.send("/app/chat.group", {}, JSON.stringify({
+                            type: 'chatMessage',
+                            data: res
+                        }));
+                    }
+                });
+
+                var socket = new SockJS(basePath+'/ws');
+                stompClient = Stomp.over(socket);
+
+                stompClient.connect({
+                    'Authorization': '22222'
+                }, onConnected, onError);
+            }
+        });
+
+        function onConnected() {
+            console.log("连接成功");
+            var username = localStorage.getItem("username")
+            console.log("===>>>>>>>>"+'/user/'+username+'/topic/chat')
+            stompClient.subscribe('/user/'+username+'/topic/chat', onMessageReceived);
+            // 写死监听一个group 1000
+            console.log("===>>>>>>>>"+'/topic/group1000')
+            stompClient.subscribe('/topic/group1000', onMessageReceived);
+        }
+
+        function onMessageReceived(payload) {
+            var message = JSON.parse(payload.body);
+            if (message.username !== init.mine.username) {
+                layim.getMessage(message);
+            }
+        }
+
+        function onError(error) {
+            console.log("链接失败")
+            console.log(error);
+        }
+    });
+
+</script>
+</body>
+</html>

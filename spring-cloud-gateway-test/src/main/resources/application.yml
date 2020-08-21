@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: gateway-hgp
+  cloud: #配置SpringCloudGateway的路由
+    gateway:
+      discovery:
+        locator:
+          enabled: true  #开启根据微服务名称自动转发
+          lower-case-service-id: true  #微服务名称以小写形式呈现
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+server:
+  port: 8080
+
+#logging:
+#  level:
+#    root: debug

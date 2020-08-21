@@ -1,6 +1,20 @@
 version: '3.3'
 
 services:
+  nginx:
+    image: nginx:1.17.6-alpine
+    container_name: nginx
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./conf/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    extra_hosts:
+      - "real-server:192.168.2.230"
+    ports:
+      - 80:80
+
   eureka:
     image: openjdk:8u212-jre-alpine3.9
     container_name: eureka
@@ -33,7 +47,7 @@ services:
   gateway:
     image: openjdk:8u212-jre-alpine3.9
     container_name: mysql-cluster-node02
-    restart: always 
+    restart: always
     environment:
       - TZ=Asia/Shanghai
       - CLUSTER_NAME=mysql-cluster
